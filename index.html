@@ -1,94 +1,243 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avventura con Spirit</title>
+<style>
+:root {
+    --bg1:#fff7ec;
+    --bg2:#dfc296;
+    --brown:#4e342e;
+    --brown2:#7a5548;
+    --cream:#fffaf2;
+    --border:#ddc5aa;
+    --green:#2e7d32;
+    --red:#b71c1c;
+    --blue:#1e88e5;
+    --soft:#f8ead7;
+}
+* { box-sizing:border-box; }
+body {
+    margin:0;
+    min-height:100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    background:linear-gradient(135deg,var(--bg1),var(--bg2));
+    color:var(--brown);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:18px;
+}
+#quiz-container {
+    width:min(1080px,96vw);
+    background:white;
+    border-radius:32px;
+    box-shadow:0 18px 45px rgba(0,0,0,.20);
+    padding:28px;
+    text-align:center;
+}
+h1 {
+    margin:0 0 8px;
+    font-size:clamp(2rem,4vw,3.35rem);
+    color:var(--brown);
+}
+.subtitle {
+    font-size:1.08rem;
+    font-weight:700;
+    margin:0 auto 20px;
+    max-width:760px;
+    line-height:1.45;
+}
+.hidden { display:none; }
+.main-btn,.nav-btn {
+    border:0;
+    border-radius:16px;
+    color:white;
+    font-weight:900;
+    cursor:pointer;
+    min-height:54px;
+}
+.main-btn {
+    background:var(--brown2);
+    font-size:1.2rem;
+    padding:16px 28px;
+}
+.nav-btn {
+    background:var(--brown2);
+    font-size:1rem;
+    padding:14px 20px;
+}
+.nav-btn.secondary { background:#9b8578; }
+.nav-btn:disabled {
+    background:#d7ccc8;
+    cursor:not-allowed;
+}
+.main-btn:focus,.nav-btn:focus,.option-card:focus {
+    outline:5px solid var(--blue);
+    outline-offset:4px;
+}
+#progress {
+    font-size:1.05rem;
+    font-weight:900;
+    color:var(--brown2);
+    margin-bottom:8px;
+}
+.progressbar {
+    height:14px;
+    background:#eee0d0;
+    border-radius:999px;
+    overflow:hidden;
+    margin:0 auto 18px;
+    max-width:720px;
+}
+#progress-fill {
+    height:100%;
+    width:0%;
+    background:var(--brown2);
+    border-radius:999px;
+    transition:width .25s;
+}
+.question {
+    font-size:clamp(1.45rem,3vw,2.22rem);
+    font-weight:900;
+    line-height:1.25;
+    margin:10px auto 22px;
+    max-width:900px;
+}
+.options {
+    display:grid;
+    gap:18px;
+  </style>
+</head>
+<body>
+<div id="quiz-container">
+    <section id="start-screen">
+        <h1>Avventura con Spirit 🐴</h1>
+        <p class="subtitle">Guarda le immagini, scegli la risposta e procedi al tuo ritmo.</p>
+        <button class="main-btn" onclick="startQuiz()">INIZIA</button>
+    </section>
 
+    <section id="question-screen" class="hidden" aria-live="polite">
+        <h1>Avventura con Spirit 🐴</h1>
+        <div id="progress"></div>
+        <div class="progressbar"><div id="progress-fill"></div></div>
+        <div class="question" id="question-text"></div>
+        <div class="options" id="options-buttons"></div>
+        <div id="feedback" role="status"></div>
+        <div id="hint"></div>
+
+        <div class="navigation">
+            <button class="nav-btn secondary" id="back-btn" onclick="goBack()">← INDIETRO</button>
+            <button class="nav-btn" id="next-btn" onclick="goNext()">AVANTI →</button>
+        </div>
+    </section>
+
+    <section id="end-screen" class="hidden">
+        <h1>Bravo, hai aiutato Spirit! 🐴</h1>
+        <p class="subtitle">Hai completato l'avventura.</p>
+        <button class="main-btn" onclick="restartQuiz()">RICOMINCIA</button>
+    </section>
+</div>
 <script>
-const quiz = [
+let currentIndex = 0;
+let locked = false;
+const letters = ["A","B","C","D"];
 
-{
-q: "Cosa mangia il cavallo?",
-a: [
-@@ -100,21 +101,24 @@ <h1>Avventura con Spirit 🐎</h1>
-{img:"carne.png", label:"CARNE"}
-]
-},
-
-{
-q: "Il cavallo è...",
-a: [
-{img:"erba.png", label:"ERBIVORO"},
-{img:"erbivoro.png", label:"ERBIVORO"},
-{img:"carne.png", label:"CARNIVORO"},
-{img:"misto.png", label:"ONNIVORO"}
-{img:"onnivoro.png", label:"ONNIVORO"}
-]
-},
-
-{
-q: "Il cavallo può provare emozioni?",
-a: [
-{img:"si.png", label:"SI"},
-{img:"no.png", label:"NO"}
-]
-},
-
-{
-q: "Se non ti conosce può provare...",
-a: [
-@@ -123,14 +127,16 @@ <h1>Avventura con Spirit 🐎</h1>
-{img:"fame.png", label:"FAME"}
-]
-},
-
-{
-q: "Come ci avviciniamo?",
-a: [
-{img:"lento.png", label:"LENTO"},
-{img:"avvicinarsi.png", label:"CALMA"},
-{img:"correre.png", label:"CORRERE"},
-{img:"urlare.png", label:"URLARE"}
-{img:"dietro.png", label:"DIETRO"}
-]
-},
-
-{
-q: "Le andature del cavallo sono:",
-a: [
-@@ -139,6 +145,16 @@ <h1>Avventura con Spirit 🐎</h1>
-{img:"veloce.png", label:"GALOPPO, VELOCE, ALLUNGATO"}
-]
-},
-
-{
-q: "Qual è l'andatura più veloce?",
-a: [
-{img:"passo.png", label:"PASSO"},
-{img:"trotto.png", label:"TROTTO"},
-{img:"galoppo.png", label:"GALOPPO"}
-]
-},
-
-{
-q: "Dove vive meglio?",
-a: [
-@@ -147,6 +163,7 @@ <h1>Avventura con Spirit 🐎</h1>
-{img:"scuderia.jpg", label:"SCUDERIA"}
-]
-},
-
-{
-q: "Dove è pericoloso?",
-a: [
-@@ -155,6 +172,7 @@ <h1>Avventura con Spirit 🐎</h1>
-{img:"fianco.png", label:"FIANCO"}
-]
-},
-
-{
-q: "Cosa fa stare bene il cavallo?",
-a: [
-@@ -163,6 +181,7 @@ <h1>Avventura con Spirit 🐎</h1>
-{img:"box.jpg", label:"STARE NEL BOX"}
-]
+function startQuiz() {
+    document.getElementById("start-screen").classList.add("hidden");
+    document.getElementById("end-screen").classList.add("hidden");
+    document.getElementById("question-screen").classList.remove("hidden");
+    currentIndex = 0;
+    showQuestion();
 }
 
-];
+function restartQuiz() { startQuiz(); }
 
-let current = 0;
+function showQuestion() {
+    locked = false;
+    const current = questions[currentIndex];
+
+    document.getElementById("progress").innerText = "DOMANDA " + (currentIndex + 1) + " DI " + questions.length;
+    document.getElementById("progress-fill").style.width = ((currentIndex + 1) / questions.length * 100) + "%";
+    document.getElementById("question-text").innerText = current.q;
+    document.getElementById("feedback").innerText = "";
+    document.getElementById("feedback").className = "";
+    document.getElementById("hint").innerText = "";
+
+    document.getElementById("back-btn").disabled = currentIndex === 0;
+    document.getElementById("next-btn").innerText = currentIndex === questions.length - 1 ? "FINE →" : "AVANTI →";
+
+    const optionsDiv = document.getElementById("options-buttons");
+    optionsDiv.innerHTML = "";
+    optionsDiv.className = "options options-" + current.options.length;
+
+    current.options.forEach((option, index) => {
+        const button = document.createElement("button");
+        button.className = "option-card";
+        button.type = "button";
+
+        const title = option.items.map(x => x.text).join(" + ");
+        button.setAttribute("aria-label", letters[index] + ": " + title);
+
+        const imagesClass = option.items.length === 1 ? "one" : option.items.length === 2 ? "two" : "three";
+        const content = option.items.map(x => `
+            <div class="image-unit">
+                <img src="${x.img}" alt="${x.text}">
+                <div class="image-label">${x.text}</div>
+            </div>
+        `).join("");
+
+        button.innerHTML = `<div class="option-images ${imagesClass}">${content}</div>`;
+        button.onclick = () => checkAnswer(index, button);
+        optionsDiv.appendChild(button);
+    });
+}
+
+function checkAnswer(index, button) {
+    if (locked) return;
+
+    const current = questions[currentIndex];
+    const feedback = document.getElementById("feedback");
+
+    if (index === current.correct) {
+        locked = true;
+        button.classList.add("correct");
+        feedback.innerText = "✓ CORRETTO";
+        feedback.className = "feedback-good";
+        setTimeout(() => goNext(), 1000);
+    } else {
+        button.classList.add("wrong");
+        feedback.innerText = "✕ RIPROVA";
+        feedback.className = "feedback-try";
+        setTimeout(() => {
+            button.classList.remove("wrong");
+            feedback.innerText = "";
+            feedback.className = "";
+        }, 850);
+    }
+}
+
+function goBack() {
+    if (currentIndex > 0) {
+        currentIndex--;
+        showQuestion();
+    }
+}
+
+function goNext() {
+    if (currentIndex < questions.length - 1) {
+        currentIndex++;
+        showQuestion();
+    } else {
+        showEndScreen();
+    }
+}
+
+function showEndScreen() {
+    document.getElementById("question-screen").classList.add("hidden");
+    document.getElementById("end-screen").classList.remove("hidden");
+}
+</script>
+</body>
+</html>
