@@ -1,121 +1,44 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quiz Spirit</title>
-
-<style>
-body {
-    font-family: Arial;
-    text-align: center;
-    background: #fff7ec;
-}
-
-.option-card {
-    border: 2px solid #ccc;
-    border-radius: 10px;
-    padding: 10px;
-    margin: 10px;
-    display: inline-block;
-    cursor: pointer;
-    width: 200px;
-}
-
-.option-card:hover {
-    background: #ffe0b2;
-}
-
-img {
-    width: 100%;
-}
-</style>
-</head>
-
-<body>
-
-<h1>Avventura con Spirit 🐴</h1>
-
-<div id="question"></div>
-<div id="options"></div>
-
-<br>
-<button onclick="next()">Avanti</button>
 
 <script>
+let currentQuestionIndex = 0;
 
-const questions = [
-{
-    q: "COSA MANGIA IL CAVALLO?",
-    options: [
-        {text:"ERBA", img:"https://via.placeholder.com/150?text=Erba"},
-        {text:"PIZZA", img:"https://via.placeholder.com/150?text=Pizza"},
-        {text:"GELATO", img:"https://via.placeholder.com/150?text=Gelato"}
-    ],
-    correct: 0
-},
-{
-    q: "DOVE VIVE IL CAVALLO?",
-    options: [
-        {text:"STALLA", img:"https://via.placeholder.com/150?text=Stalla"},
-        {text:"MARE", img:"https://via.placeholder.com/150?text=Mare"},
-        {text:"LUNA", img:"https://via.placeholder.com/150?text=Luna"}
-    ],
-    correct: 0
-}
-];
+function renderQuestion() {
+    const q = questions[currentQuestionIndex];
 
-let current = 0;
+    // NUMERO DOMANDA
+    document.getElementById("question-text").innerText =
+        (currentQuestionIndex + 1) + ". " + q.q;
 
-function render() {
-    const q = questions[current];
+    const optionsContainer = document.getElementById("options-buttons");
+    optionsContainer.innerHTML = "";
 
-    // 👉 NUMERO DOMANDA
-    document.getElementById("question").innerText =
-        (current + 1) + ". " + q.q;
+    q.options.forEach((opt, index) => {
 
-    const optionsDiv = document.getElementById("options");
-    optionsDiv.innerHTML = "";
+        // LETTERE a, b, c
+        const letter = ["a)", "b)", "c)"][index];
 
-    q.options.forEach((opt, i) => {
+        const card = document.createElement("div");
+        card.className = "option-card";
 
-        // 👉 a b c
-        const letters = ["a)", "b)", "c)"];
+        const label = document.createElement("div");
+        label.className = "image-label";
+        label.innerText = letter + " " + opt.items[0].text;
 
-        const div = document.createElement("div");
-        div.className = "option-card";
+        const img = document.createElement("img");
+        img.src = opt.items[0].img;
 
-        div.innerHTML = `
-            <img src="${opt.img}">
-            <p><b>${letters[i]}</b> ${opt.text}</p>
-        `;
+        const wrapper = document.createElement("div");
+        wrapper.className = "image-unit";
+        wrapper.appendChild(img);
+        wrapper.appendChild(label);
 
-        div.onclick = () => checkAnswer(i);
+        card.appendChild(wrapper);
 
-        optionsDiv.appendChild(div);
+        card.onclick = () => selectOption(index);
+
+        optionsContainer.appendChild(card);
     });
+
+    updateProgress();
 }
-
-function checkAnswer(i) {
-    if (i === questions[current].correct) {
-        alert("Corretto!");
-    } else {
-        alert("Sbagliato!");
-    }
-}
-
-function next() {
-    current++;
-    if (current >= questions.length) {
-        alert("Hai finito il quiz!");
-        current = 0;
-    }
-    render();
-}
-
-render();
-
 </script>
-
-</body>
-</html>
